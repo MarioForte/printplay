@@ -10,10 +10,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout PrintPlay
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Checkout TiMini-Print
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: Dejniel/TiMini-Print
           path: timini-print
