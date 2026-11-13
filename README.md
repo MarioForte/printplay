@@ -91,11 +91,12 @@ For two players PrintPlay prints four fields, two per player:
 3. Player 2 — own fleet, ships already placed;
 4. Player 2 — enemy waters, empty grid.
 
-The two fields of a player are a single fragment: the own fleet and enemy
-waters are printed one after another in landscape orientation. The tear-off
-line and the pause appear only after the second field, so you do not tear the
-pair apart. Then PrintPlay pauses and prints the next player's pair. Change the
-pause with `--pause`.
+Each player's two fields are printed as one fragment. The pair is rotated 90°
+on the roll: tear it off, turn the paper, and the own fleet sits on the left
+while the empty enemy waters sit on the right. The fleet legend is printed under
+each board. The tear-off line and the pause appear only after the pair, so you
+do not tear the two boards apart. Then PrintPlay prints the next player's pair.
+Change the pause with `--pause`.
 
 ### Sudoku layout
 

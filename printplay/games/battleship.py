@@ -158,66 +158,57 @@ def _draw_ship(
         y1 = top + ship.row * cell + inset
         x2 = left + (ship.col + 1) * cell - inset
         y2 = top + (ship.row + ship.length) * cell - inset
-    draw.rectangle((x1, y1, x2, y2), fill=0)
+    # A light fill keeps the ship visible while leaving room for pen marks.
+    # Atkinson turns the gray into a sparse dot pattern; threshold leaves it
+    # white with only the outline, which is also easy to write over.
+    draw.rectangle(
+        (x1, y1, x2, y2),
+        fill=210,
+        outline=0,
+        width=max(2, cell // 14),
+    )
 
 
-def render_battleship(
+def _draw_board_section(
+    draw: ImageDraw.ImageDraw,
     ships: list[Ship],
     *,
-    width: int,
+    x: int,
+    grid_top: int,
+    cell: int,
+    label_size: int,
+    header_height: int,
     player: int,
     role: str,
     t: Translator,
     show_ships: bool,
-    tear_off: bool = False,
-) -> Page:
-    """Render one landscape 10x10 battleship field at exactly ``width`` pixels.
-
-    The board stays square, but the title and fleet legend sit beside it, so the
-    fragment is wider than it is tall. ``tear_off`` adds the cut line used after
-    the second field of a player's pair.
-    """
-    margin = max(3, width // 96)
-    label_size = max(9, width // 34)
-    legend_column = max(36, width // 8)
-    available = width - 2 * margin - label_size - legend_column
-    cell = max(20, available // BOARD_SIZE)
+) -> None:
     board_size = cell * BOARD_SIZE
-    grid_left = margin + label_size
-    legend_x = grid_left + board_size + max(4, width // 96)
+    grid_left = x + label_size
 
-    title_size = max(13, int(cell * 0.50))
-    subtitle_size = max(9, int(cell * 0.32))
-    coord_size = max(9, int(cell * 0.32))
-    legend_size = max(8, int(cell * 0.26))
+    title_font = load_font(max(13, int(cell * 0.45)))
+    subtitle_font = load_font(max(8, int(cell * 0.27)))
+    coord_font = load_font(max(9, int(cell * 0.30)))
+    legend_font = load_font(max(8, int(cell * 0.25)))
 
-    title_font = load_font(title_size)
-    subtitle_font = load_font(subtitle_size)
-    coord_font = load_font(coord_size)
-    legend_font = load_font(legend_size)
-
-    header_height = max(20, int(cell * 0.65))
-    footer_height = max(12, int(cell * 0.40))
-    top = margin
-    grid_top = top + header_height + label_size
-    board_bottom = grid_top + board_size
-    height = board_bottom + footer_height + margin
-
-    image = Image.new("L", (width, height), 255)
-    draw = ImageDraw.Draw(image)
-
-    draw_text_left(draw, (margin, top), t("battleship_title"), title_font)
+    header_top = grid_top - header_height - label_size
+    draw_text_left(draw, (x, header_top + 1), t("battleship_title"), title_font)
     role_short = t("battleship_own_short") if role == "own" else t("battleship_enemy_short")
     header_right = f"{t('battleship_player', player=player)} · {role_short}"
-    draw_text_right(draw, (width - margin, top + 1), header_right, subtitle_font)
+    draw_text_right(
+        draw,
+        (grid_left + board_size, header_top + 2),
+        header_right,
+        subtitle_font,
+    )
 
     letters = LETTERS.get(t.lang, LETTERS["en"])
     for col in range(BOARD_SIZE):
-        x = grid_left + col * cell + cell / 2
-        draw_text_center(draw, (x, grid_top - label_size / 2), letters[col], coord_font)
+        center_x = grid_left + col * cell + cell / 2
+        draw_text_center(draw, (center_x, grid_top - label_size / 2), letters[col], coord_font)
     for row in range(BOARD_SIZE):
-        y = grid_top + row * cell + cell / 2
-        draw_text_center(draw, (grid_left - label_size / 2, y), str(row + 1), coord_font)
+        center_y = grid_top + row * cell + cell / 2
+        draw_text_center(draw, (grid_left - label_size / 2, center_y), str(row + 1), coord_font)
 
     _draw_grid(draw, left=grid_left, top=grid_top, cell=cell, size=BOARD_SIZE)
 
@@ -225,31 +216,97 @@ def render_battleship(
         for ship in ships:
             _draw_ship(draw, ship, left=grid_left, top=grid_top, cell=cell)
 
-    # Vertical fleet legend in the right column: one silhouette per ship.
-    draw_text_left(draw, (legend_x, grid_top - label_size), t("battleship_fleet"), legend_font)
-    legend_y = grid_top + 2
-    icon_height = max(4, int(cell * 0.14))
-    icon_unit = max(4, int(cell * 0.14))
+    # Horizontal fleet legend under the board, like the earlier portrait layout.
+    legend_y = grid_top + board_size + 2
+    draw_text_left(draw, (x, legend_y), t("battleship_fleet"), legend_font)
+    legend_x = x + max(24, int(cell * 0.8))
+    icon_unit = max(4, int(cell * 0.15))
+    icon_height = max(5, int(cell * 0.18))
     for length in FLEET:
-        icon_width = max(icon_unit, length * icon_unit)
+        icon_width = length * icon_unit
         draw.rectangle(
-            (legend_x, legend_y, legend_x + icon_width, legend_y + icon_height),
+            (legend_x, legend_y + 1, legend_x + icon_width, legend_y + 1 + icon_height),
             fill=0,
         )
-        legend_y += icon_height + max(2, icon_height // 2)
+        legend_x += icon_width + max(3, icon_unit - 1)
 
-    if tear_off:
-        footer_y = height - footer_height
-        dashed_line(draw, footer_y + 2, x1=margin, x2=width - margin)
-        draw_text_center(
-            draw,
-            (width / 2, footer_y + footer_height - 3),
-            t("tear_off_short"),
-            legend_font,
-        )
 
-    label = t("battleship_page_label", player=player, role=role_short)
-    return Page(image=image, label=label, pause_after=tear_off, tear_off=tear_off)
+def render_battleship_pair(
+    ships: list[Ship],
+    *,
+    width: int,
+    player: int,
+    t: Translator,
+) -> Page:
+    """Render one player's pair: own fleet and enemy waters side by side.
+
+    The pair is composed in landscape orientation (two boards next to each
+    other), then rotated 90 degrees so it fits the printer's fixed width. Tear
+    the fragment off, rotate the paper, and the two boards sit left and right.
+    """
+    margin = max(3, width // 96)
+    label_size = max(9, width // 34)
+    header_height = max(18, int(width * 0.055))
+    legend_height = max(18, int(width * 0.05))
+    cell = max(
+        20,
+        (width - 2 * margin - header_height - label_size - legend_height) // BOARD_SIZE,
+    )
+    board_size = cell * BOARD_SIZE
+    section_width = label_size + board_size + margin
+    gap = max(6, width // 48)
+    pair_width = 2 * section_width + gap + 2 * margin
+    grid_top = margin + header_height + label_size
+    pair_height = width
+
+    pair = Image.new("L", (pair_width, pair_height), 255)
+    draw = ImageDraw.Draw(pair)
+    _draw_board_section(
+        draw,
+        ships,
+        x=margin,
+        grid_top=grid_top,
+        cell=cell,
+        label_size=label_size,
+        header_height=header_height,
+        player=player,
+        role="own",
+        t=t,
+        show_ships=True,
+    )
+    _draw_board_section(
+        draw,
+        [],
+        x=margin + section_width + gap,
+        grid_top=grid_top,
+        cell=cell,
+        label_size=label_size,
+        header_height=header_height,
+        player=player,
+        role="enemy",
+        t=t,
+        show_ships=False,
+    )
+
+    rotated = pair.transpose(Image.Transpose.ROTATE_270)
+    footer = max(12, width // 24)
+    final = Image.new("L", (rotated.width, rotated.height + footer), 255)
+    final.paste(rotated, (0, 0))
+    draw = ImageDraw.Draw(final)
+    dashed_line(draw, rotated.height + 2, x1=margin, x2=final.width - margin)
+    draw_text_center(
+        draw,
+        (final.width / 2, rotated.height + footer - 3),
+        t("tear_off_short"),
+        load_font(max(8, width // 48)),
+    )
+
+    return Page(
+        image=final,
+        label=t("battleship_pair_label", player=player),
+        pause_after=True,
+        tear_off=True,
+    )
 
 
 def build_battleship_pages(
@@ -260,31 +317,10 @@ def build_battleship_pages(
     rng: Optional[random.Random] = None,
 ) -> list[Page]:
     rng = rng or random.Random()
-    pages: list[Page] = []
-    for player in range(1, players + 1):
-        ships = place_fleet(rng)
-        pages.append(
-            render_battleship(
-                ships,
-                width=width,
-                player=player,
-                role="own",
-                t=t,
-                show_ships=True,
-            )
-        )
-        pages.append(
-            render_battleship(
-                [],
-                width=width,
-                player=player,
-                role="enemy",
-                t=t,
-                show_ships=False,
-                tear_off=True,
-            )
-        )
-    return pages
+    return [
+        render_battleship_pair(place_fleet(rng), width=width, player=player, t=t)
+        for player in range(1, players + 1)
+    ]
 
 
 __all__ = [
@@ -293,5 +329,5 @@ __all__ = [
     "Ship",
     "build_battleship_pages",
     "place_fleet",
-    "render_battleship",
+    "render_battleship_pair",
 ]
