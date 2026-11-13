@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Run PrintPlay with the TiMini-Print checkout next to it.
 set -e
 

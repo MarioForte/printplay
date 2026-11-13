@@ -1,3 +1,3 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 # Short alias for PrintPlay.
 exec "$(cd "$(dirname "$0")" && pwd)/run.sh" "$@"
