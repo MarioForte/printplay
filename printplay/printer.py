@@ -133,14 +133,6 @@ def _save_page(image: Any, keep_dir: Optional[str], index: int) -> tuple[str, bo
 def _print_plan(info: PrinterInfo, pages: Sequence[Page], options: PrintOptions, t: Translator) -> None:
     print()
     print(t("plan_title"))
-    print(
-        t(
-            "plan_printer",
-            name=info.display_name,
-            model=info.model_key or "?",
-            profile=info.profile_key,
-        )
-    )
     print(t("plan_paper", paper=info.paper_key, width=info.width, dpi=info.dpi))
     print(t("plan_pages", count=len(pages)))
     if len(pages) > 1:
