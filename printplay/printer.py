@@ -133,7 +133,8 @@ def _print_plan(info: PrinterInfo, pages: Sequence[Page], options: PrintOptions,
     )
     print(t("plan_paper", paper=info.paper_key, width=info.width, dpi=info.dpi))
     print(t("plan_pages", count=len(pages)))
-    print(t("plan_pause", seconds=options.pause))
+    if len(pages) > 1:
+        print(t("plan_pause", seconds=options.pause))
     for index, page in enumerate(pages, 1):
         print(t("plan_page", index=index, label=page.label))
         if page.ascii_preview:
