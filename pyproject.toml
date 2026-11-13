@@ -1,0 +1,20 @@
+[project]
+name = "printplay"
+version = "0.1.0"
+description = "Print-and-play game templates for thermal printers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["Pillow>=9.0"]
+
+[project.scripts]
+printplay = "printplay.cli:main"
+pnp = "printplay.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
