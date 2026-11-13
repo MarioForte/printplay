@@ -31,18 +31,40 @@ PrintPlay не копирует и не вендорит исходники TiMi
 
 ## Быстрый старт
 
-Клонируйте оба репозитория рядом:
+PrintPlay — тонкая надстройка над TiMini-Print, поэтому нужны оба репозитория.
+PrintPlay **не создаёт virtualenv автоматически**: он использует окружение из
+клона TiMini-Print.
 
-```text
-projects/
-  timini-print/
-  printplay/
-```
-
-Затем:
+### 1. Клонируйте оба репозитория рядом
 
 ```bash
-cd printplay
+mkdir -p ~/projects
+cd ~/projects
+
+git clone https://github.com/Dejniel/TiMini-Print.git timini-print
+git clone https://github.com/MarioForte/printplay.git printplay
+```
+
+### 2. Создайте virtualenv TiMini-Print и установите зависимости
+
+```bash
+cd ~/projects/timini-print
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+Если используешь [`uv`](https://docs.astral.sh/uv/):
+
+```bash
+uv venv .venv -p 3.13
+uv pip install --python .venv/bin/python -r requirements.txt
+```
+
+### 3. Запустите PrintPlay
+
+```bash
+cd ~/projects/printplay
 ./run.sh
 ```
 
@@ -52,6 +74,33 @@ TiMini-Print в `PYTHONPATH`. Если TiMini-Print лежит в другом �
 ```bash
 TIMINIPRINT_ROOT=/path/to/timini-print ./run.sh
 ```
+
+### 4. Опционально: установите команды `printplay` и `pnp`
+
+```bash
+cd ~/projects/printplay
+python3 -m pip install -e ".[dev]"
+printplay --version
+pnp --version
+```
+
+Установленным командам всё равно нужен TiMini-Print. PrintPlay сам находит
+`../timini-print` или использует `TIMINIPRINT_ROOT`.
+
+### Если принтер не найден
+
+- Убедись, что принтер включён и находится в паре.
+- На macOS разреши доступ к Bluetooth, когда система спросит.
+- Запусти `./run.sh scan`.
+- Попробуй `./run.sh sudoku --bluetooth MXW-W5` или `./run.sh sudoku --model v5x`.
+
+### Зависимости на GitHub
+
+- Pillow объявлен в `pyproject.toml`, поэтому GitHub dependency graph может его
+  показать, а Dependabot — обновлять.
+- TiMini-Print не является pip-пакетом. Он клонируется отдельно и не попадает
+  в Python dependency graph.
+- `.github/dependabot.yml` обновляет Python- и GitHub Actions-зависимости.
 
 ## Использование
 

@@ -231,20 +231,15 @@ def _draw_board_section(
         legend_x += icon_width + max(3, icon_unit - 1)
 
 
-def render_battleship_pair(
+def compose_battleship_pair(
     ships: list[Ship],
     *,
     width: int,
     player: int,
     t: Translator,
     auto_ships: bool = True,
-) -> Page:
-    """Render one player's pair: own fleet and enemy waters side by side.
-
-    The pair is composed in landscape orientation (two boards next to each
-    other), then rotated 90 degrees so it fits the printer's fixed width. Tear
-    the fragment off, rotate the paper, and the two boards sit left and right.
-    """
+) -> Image.Image:
+    """Compose one player's two boards side by side, before printer rotation."""
     margin = max(3, width // 96)
     label_size = max(9, width // 34)
     header_height = max(18, int(width * 0.055))
@@ -288,9 +283,32 @@ def render_battleship_pair(
         t=t,
         show_ships=False,
     )
+    return pair
 
-    rotated = pair.transpose(Image.Transpose.ROTATE_270)
+
+def render_battleship_pair(
+    ships: list[Ship],
+    *,
+    width: int,
+    player: int,
+    t: Translator,
+    auto_ships: bool = True,
+) -> Page:
+    """Render one player's pair, rotated 90 degrees for the printer width.
+
+    Tear the fragment off, rotate the paper, and the two boards sit left and
+    right.
+    """
+    pair = compose_battleship_pair(
+        ships,
+        width=width,
+        player=player,
+        t=t,
+        auto_ships=auto_ships,
+    )
+    margin = max(3, width // 96)
     footer = max(12, width // 24)
+    rotated = pair.transpose(Image.Transpose.ROTATE_270)
     final = Image.new("L", (rotated.width, rotated.height + footer), 255)
     final.paste(rotated, (0, 0))
     draw = ImageDraw.Draw(final)
@@ -340,6 +358,7 @@ __all__ = [
     "FLEET",
     "Ship",
     "build_battleship_pages",
+    "compose_battleship_pair",
     "place_fleet",
     "render_battleship_pair",
 ]

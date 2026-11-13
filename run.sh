@@ -13,6 +13,9 @@ fi
 
 PY="$TIMINI/.venv/bin/python"
 if [[ ! -x "$PY" ]]; then
+  echo "Warning: $TIMINI/.venv/bin/python not found." >&2
+  echo "Create the TiMini-Print virtualenv first (see README Quick start)." >&2
+  echo "Falling back to python3; dependencies may be missing." >&2
   PY="python3"
 fi
 

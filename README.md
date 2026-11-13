@@ -9,6 +9,10 @@ Bluetooth thermal printers. It uses [TiMini-Print](https://github.com/Dejniel/Ti
 as an external engine for printer discovery, paper geometry, protocol handling,
 and raster sending.
 
+![PrintPlay previews](docs/images/preview.png)
+
+*Previews rendered at 2× for clarity. Actual print width: 384 px / 203 dpi.*
+
 ## Games
 
 - **Sudoku** — difficulty 1–5, unique solution, one or more puzzles per run.
@@ -30,18 +34,40 @@ package from a local checkout.
 
 ## Quick start
 
-Clone both repositories side by side:
+PrintPlay is a thin layer over TiMini-Print, so you need both repositories.
+PrintPlay does **not** create a virtualenv automatically; it uses the Python
+environment from the TiMini-Print checkout.
 
-```text
-projects/
-  timini-print/
-  printplay/
-```
-
-Then run:
+### 1. Clone both repositories side by side
 
 ```bash
-cd printplay
+mkdir -p ~/projects
+cd ~/projects
+
+git clone https://github.com/Dejniel/TiMini-Print.git timini-print
+git clone https://github.com/MarioForte/printplay.git printplay
+```
+
+### 2. Create the TiMini-Print virtualenv and install its dependencies
+
+```bash
+cd ~/projects/timini-print
+python3 -m venv .venv
+.venv/bin/python -m pip install --upgrade pip
+.venv/bin/python -m pip install -r requirements.txt
+```
+
+If you use [`uv`](https://docs.astral.sh/uv/):
+
+```bash
+uv venv .venv -p 3.13
+uv pip install --python .venv/bin/python -r requirements.txt
+```
+
+### 3. Run PrintPlay
+
+```bash
+cd ~/projects/printplay
 ./run.sh
 ```
 
@@ -51,6 +77,33 @@ checkout to `PYTHONPATH`. If TiMini-Print lives elsewhere:
 ```bash
 TIMINIPRINT_ROOT=/path/to/timini-print ./run.sh
 ```
+
+### 4. Optional: install the `printplay` and `pnp` commands
+
+```bash
+cd ~/projects/printplay
+python3 -m pip install -e ".[dev]"
+printplay --version
+pnp --version
+```
+
+The installed commands still need TiMini-Print. PrintPlay finds
+`../timini-print` automatically or uses `TIMINIPRINT_ROOT`.
+
+### If the printer is not found
+
+- Make sure the printer is awake and paired.
+- On macOS, allow Bluetooth access when the system asks for it.
+- Run `./run.sh scan`.
+- Try `./run.sh sudoku --bluetooth MXW-W5` or `./run.sh sudoku --model v5x`.
+
+### Dependencies on GitHub
+
+- Pillow is declared in `pyproject.toml`, so GitHub's dependency graph can show
+  it and Dependabot can update it.
+- TiMini-Print is not a pip package. It is cloned separately and does not appear
+  in the Python dependency graph.
+- `.github/dependabot.yml` keeps the Python and GitHub Actions dependencies up to date.
 
 ## Usage
 
