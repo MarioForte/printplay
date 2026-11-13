@@ -158,8 +158,19 @@ cd printplay
 PYTHONPATH=".:../timini-print" ../timini-print/.venv/bin/python -m pytest -q
 ```
 
+При желании можно установить команды `printplay` и `pnp` локально:
+
+```bash
+python -m pip install -e ".[dev]"
+printplay --version
+```
+
+PrintPlay сам находит `../timini-print`; если клон лежит в другом месте,
+задай `TIMINIPRINT_ROOT`.
+
 Генераторы и рендереры игр не импортируют TiMini-Print, поэтому их тесты
-работают без Bluetooth и принтера.
+работают без Bluetooth и принтера. GitHub Actions запускает те же тесты
+против upstream-клона TiMini-Print.
 
 ## Лицензия
 

@@ -156,8 +156,19 @@ cd printplay
 PYTHONPATH=".:../timini-print" ../timini-print/.venv/bin/python -m pytest -q
 ```
 
+Optional: install the `printplay` and `pnp` entry points locally:
+
+```bash
+python -m pip install -e ".[dev]"
+printplay --version
+```
+
+PrintPlay finds `../timini-print` automatically; set `TIMINIPRINT_ROOT` if the
+checkout lives elsewhere.
+
 The game generators and renderers do not import TiMini-Print, so their tests run
-without Bluetooth or printer hardware.
+without Bluetooth or printer hardware. GitHub Actions runs the same tests
+against the upstream TiMini-Print checkout.
 
 ## License
 

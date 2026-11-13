@@ -1,0 +1,38 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout PrintPlay
+        uses: actions/checkout@v4
+
+      - name: Checkout TiMini-Print
+        uses: actions/checkout@v4
+        with:
+          repository: Dejniel/TiMini-Print
+          path: timini-print
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r timini-print/requirements.txt pytest
+
+      - name: Run tests
+        run: PYTHONPATH=".:timini-print" python -m pytest -q
+
+      - name: Smoke test CLI
+        run: |
+          PYTHONPATH=".:timini-print" python -m printplay --version
+          PYTHONPATH=".:timini-print" python -m printplay models > /dev/null
+          PYTHONPATH=".:timini-print" python -m printplay sudoku --model v5x --dry-run > /dev/null

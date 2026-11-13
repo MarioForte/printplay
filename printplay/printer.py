@@ -9,8 +9,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Optional, Sequence
 
+from ._paths import ensure_timiniprint_path
 from .i18n import Translator
 from .rendering import Page
+
+ensure_timiniprint_path()
 
 
 @dataclass(frozen=True)
@@ -42,7 +45,12 @@ PageBuilder = Callable[[int], Sequence[Page]]
 
 
 def _load_catalog() -> Any:
-    from timiniprint.devices import PrinterCatalog
+    try:
+        from timiniprint.devices import PrinterCatalog
+    except ModuleNotFoundError as exc:
+        raise RuntimeError(
+            "TiMini-Print not found. Set TIMINIPRINT_ROOT or clone it next to PrintPlay."
+        ) from exc
 
     return PrinterCatalog.load()
 
@@ -78,31 +86,33 @@ def build_settings(info: PrinterInfo, options: PrintOptions) -> Any:
 
 
 async def _resolve_device(catalog: Any, discovery: Any, options: PrintOptions) -> Any:
-    scanned = None
-    if options.bluetooth:
-        scanned = await discovery.resolve_device(options.bluetooth)
-    else:
-        devices = await discovery.scan_devices()
-        if devices:
-            scanned = devices[0]
-
     if options.model:
-        target = scanned.transport_target if scanned is not None else None
-        if target is None:
+        target = None
+        display_name = None
+        if options.bluetooth:
+            scanned = await discovery.resolve_device(options.bluetooth)
+            target = scanned.transport_target
+            display_name = scanned.display_name
+        elif not options.dry_run:
             try:
-                target = (await discovery.resolve_transport_target(None)).transport_target
+                resolved = await discovery.resolve_transport_target(None)
+                target = resolved.transport_target
+                display_name = resolved.display_name
             except Exception:
-                target = None
-        display_name = scanned.display_name if scanned is not None else None
+                pass
         return catalog.device_from_model(
             options.model,
             transport_target=target,
             display_name=display_name,
         )
 
-    if scanned is None:
+    if options.bluetooth:
+        return await discovery.resolve_device(options.bluetooth)
+
+    devices = await discovery.scan_devices()
+    if not devices:
         raise RuntimeError("no supported printer found")
-    return scanned
+    return devices[0]
 
 
 def _save_page(image: Any, keep_dir: Optional[str], index: int) -> tuple[str, bool]:
