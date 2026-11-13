@@ -31,6 +31,8 @@ class Page:
     image: Image.Image
     label: str
     ascii_preview: Optional[str] = None
+    pause_after: bool = True
+    tear_off: bool = False
 
 
 @lru_cache(maxsize=64)

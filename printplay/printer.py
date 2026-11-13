@@ -210,9 +210,12 @@ async def run_print(
                     except OSError:
                         pass
             print(t("printed_page", label=page.label), flush=True)
-            if index < total and options.pause > 0:
-                print(t("tear_off", seconds=options.pause), flush=True)
-                await asyncio.sleep(options.pause)
+            if page.pause_after and options.pause > 0:
+                if index < total:
+                    print(t("tear_off", seconds=options.pause), flush=True)
+                    await asyncio.sleep(options.pause)
+                elif page.tear_off:
+                    print(t("tear_off_last"), flush=True)
 
     print(t("done"))
     return 0
