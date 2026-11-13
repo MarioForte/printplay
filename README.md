@@ -84,21 +84,25 @@ The short alias works locally too:
 
 ### Battleship layout
 
-For two players PrintPlay prints four separate fields:
+For two players PrintPlay prints four fields, two per player:
 
 1. Player 1 — own fleet, ships already placed;
 2. Player 1 — enemy waters, empty grid;
 3. Player 2 — own fleet, ships already placed;
 4. Player 2 — enemy waters, empty grid.
 
-Each field is a separate fragment. PrintPlay pauses for two seconds between
-fields so you can tear off the previous one. Change the pause with `--pause`.
+The two fields of a player are a single fragment: the own fleet and enemy
+waters are printed one after another in landscape orientation. The tear-off
+line and the pause appear only after the second field, so you do not tear the
+pair apart. Then PrintPlay pauses and prints the next player's pair. Change the
+pause with `--pause`.
 
 ### Sudoku layout
 
 Each puzzle is printed on its own fragment at the full printable width. The grid
 uses a 5 mm cell on 384 px / 203 dpi paper. Difficulty 1 is the easiest and 5 is
-the hardest; every puzzle has exactly one solution.
+the hardest; every puzzle has exactly one solution. The clue count is used only
+to choose the difficulty and is not printed on the sheet.
 
 ## Printer detection
 
