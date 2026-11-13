@@ -163,7 +163,7 @@ def _draw_ship(
     # white with only the outline, which is also easy to write over.
     draw.rectangle(
         (x1, y1, x2, y2),
-        fill=220,
+        fill=200,
         outline=0,
         width=max(2, cell // 14),
     )
@@ -255,7 +255,7 @@ def render_battleship_pair(
     )
     board_size = cell * BOARD_SIZE
     section_width = label_size + board_size + margin
-    gap = max(6, width // 48)
+    gap = max(12, width // 24)
     pair_width = 2 * section_width + gap + 2 * margin
     grid_top = margin + header_height + label_size
     pair_height = width
