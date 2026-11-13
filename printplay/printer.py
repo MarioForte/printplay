@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -143,9 +142,12 @@ def _print_plan(info: PrinterInfo, pages: Sequence[Page], options: PrintOptions,
 
 
 def _confirm(t: Translator, options: PrintOptions) -> bool:
-    if options.dry_run or options.yes or not sys.stdin.isatty():
+    if options.dry_run or options.yes:
         return True
-    answer = input(t("confirm")).strip().lower()
+    try:
+        answer = input(t("confirm")).strip().lower()
+    except EOFError:
+        return False
     return answer in ("", "y", "yes", "д", "да")
 
 

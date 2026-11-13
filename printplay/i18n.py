@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import re
+import subprocess
 from typing import Any
 
 MESSAGES: dict[str, dict[str, str]] = {
@@ -18,8 +20,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "menu_invalid": "Invalid choice.",
         "sudoku_difficulty_prompt": "Difficulty 1-5 [3]: ",
         "sudoku_count_prompt": "How many puzzles [1]: ",
+        "battleship_menu_hint": "Each player gets one fragment: own fleet with ships already placed + empty enemy waters.",
         "battleship_players_prompt": "Number of players (1-2) [2]: ",
-        "battleship_pause_prompt": "Pause between fields, seconds [2]: ",
         "sudoku_title": "SUDOKU",
         "sudoku_number": "No. {number}",
         "sudoku_level_1": "very easy",
@@ -73,8 +75,8 @@ MESSAGES: dict[str, dict[str, str]] = {
         "menu_invalid": "Неверный выбор.",
         "sudoku_difficulty_prompt": "Сложность 1-5 [3]: ",
         "sudoku_count_prompt": "Сколько головоломок [1]: ",
+        "battleship_menu_hint": "Каждому игроку — один фрагмент: свой флот с уже расставленными кораблями + пустое поле противника.",
         "battleship_players_prompt": "Сколько игроков (1-2) [2]: ",
-        "battleship_pause_prompt": "Пауза между полями, секунд [2]: ",
         "sudoku_title": "СУДОКУ",
         "sudoku_number": "№{number}",
         "sudoku_level_1": "очень легко",
@@ -121,18 +123,63 @@ MESSAGES: dict[str, dict[str, str]] = {
 SUPPORTED_LANGS = tuple(MESSAGES)
 
 
+def _macos_languages() -> list[str]:
+    """Return the macOS preferred-language list without importing PyObjC."""
+    try:
+        result = subprocess.run(
+            ["defaults", "read", "-g", "AppleLanguages"],
+            capture_output=True,
+            text=True,
+            timeout=2,
+        )
+    except Exception:
+        return []
+    if result.returncode != 0:
+        return []
+    return re.findall(r'"([^"]+)"', result.stdout)
+
+
+def _language_from_tag(tag: str) -> str | None:
+    language = tag.replace("_", "-").split("-", 1)[0].lower()
+    return language if language in MESSAGES else None
+
+
 def detect_lang(explicit: str | None = None) -> str:
-    """Pick a language from an explicit value, PRINTPLAY_LANG, or the locale."""
+    """Pick a language from an explicit value, the OS, or the locale.
+
+    macOS keeps the system language in AppleLanguages even when the terminal
+    exports LANG=en_US.UTF-8, so it takes priority over shell locale variables.
+    """
     if explicit in MESSAGES:
         return explicit
+
+    env_choice = os.environ.get("PRINTPLAY_LANG")
+    if env_choice in MESSAGES:
+        return env_choice
+
+    for tag in _macos_languages():
+        language = _language_from_tag(tag)
+        if language:
+            return language
+
     env = (
-        os.environ.get("PRINTPLAY_LANG")
-        or os.environ.get("LC_ALL")
+        os.environ.get("LC_ALL")
         or os.environ.get("LC_MESSAGES")
         or os.environ.get("LANG")
         or ""
     )
-    return "ru" if env.lower().startswith("ru") else "en"
+    language = _language_from_tag(env)
+    if language:
+        return language
+
+    try:
+        import locale
+
+        locale_name = locale.getlocale()[0] or ""
+    except Exception:
+        locale_name = ""
+    language = _language_from_tag(locale_name)
+    return language or "en"
 
 
 class Translator:

@@ -37,7 +37,7 @@ def _common_options() -> argparse.ArgumentParser:
         "--pause",
         type=float,
         default=2.0,
-        help="Pause between pages in seconds (default: 2.0)",
+        help="Pause between fragments in seconds (default: 2.0)",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show the plan and ASCII preview, do not print")
     parser.add_argument("--keep-png", metavar="DIR", help="Save generated pages to DIR (debug)")
@@ -119,24 +119,6 @@ def _ask_int(t: Translator, prompt: str, minimum: int, maximum: int, default: in
         print(t("menu_invalid"))
 
 
-def _ask_float(t: Translator, prompt: str, default: float) -> float:
-    while True:
-        try:
-            raw = input(prompt).strip()
-        except EOFError:
-            return default
-        if not raw:
-            return default
-        try:
-            value = float(raw)
-        except ValueError:
-            print(t("menu_invalid"))
-            continue
-        if value >= 0:
-            return value
-        print(t("menu_invalid"))
-
-
 def _run_sudoku(level: int, count: int, options: PrintOptions, t: Translator) -> int:
     return asyncio.run(
         run_print(
@@ -189,9 +171,9 @@ def run_menu(t: Translator) -> int:
             count = _ask_int(t, t("sudoku_count_prompt"), 1, 20, 1)
             _run_sudoku(level, count, PrintOptions(pause=2.0), t)
         elif choice == "2":
+            print(t("battleship_menu_hint"))
             players = _ask_int(t, t("battleship_players_prompt"), 1, 2, 2)
-            pause = _ask_float(t, t("battleship_pause_prompt"), 2.0)
-            _run_battleship(players, PrintOptions(pause=pause), t)
+            _run_battleship(players, PrintOptions(pause=2.0), t)
         elif choice == "3":
             asyncio.run(scan_printers(t))
         elif choice == "4":

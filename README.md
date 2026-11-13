@@ -57,6 +57,8 @@ TIMINIPRINT_ROOT=/path/to/timini-print ./run.sh
 ```bash
 # Interactive menu
 ./run.sh
+# The interface language is detected from the OS. Override it with --lang en|ru
+# or PRINTPLAY_LANG=en|ru.
 
 # Sudoku, difficulty 1-5
 ./run.sh sudoku --difficulty 3
@@ -90,6 +92,10 @@ For two players PrintPlay prints four fields, two per player:
 2. Player 1 — enemy waters, empty grid;
 3. Player 2 — own fleet, ships already placed;
 4. Player 2 — enemy waters, empty grid.
+
+In the interactive menu, battleship asks only for the number of players. The
+pause is an advanced CLI option (`--pause`); the default is two seconds between
+fragments.
 
 Each player's two fields are printed as one fragment. The pair is rotated 90°
 on the roll: tear it off, turn the paper, and the own fleet sits on the left
@@ -136,7 +142,7 @@ to adjust density.
 --pause SECONDS       Pause between fragments (default: 2.0)
 --dry-run             Show the plan and ASCII preview, do not print
 --keep-png DIR        Save generated pages to DIR for debugging
---yes                 Skip the confirmation prompt
+--yes                 Skip the confirmation prompt (PrintPlay asks by default)
 ```
 
 ## Development
