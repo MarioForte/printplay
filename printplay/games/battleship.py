@@ -118,6 +118,41 @@ def place_fleet(rng: random.Random, *, restarts: int = 200) -> list[Ship]:
     raise RuntimeError("failed to place the battleship fleet")
 
 
+def ascii_board(
+    ships: list[Ship],
+    *,
+    t: Translator,
+    show_ships: bool,
+) -> list[str]:
+    """Render one 10×10 field as terminal-friendly text."""
+    letters = LETTERS.get(t.lang, LETTERS["en"])
+    occupied: set[tuple[int, int]] = set()
+    if show_ships:
+        for ship in ships:
+            occupied.update(ship.cells())
+
+    lines = ["   " + " ".join(letters)]
+    for row in range(BOARD_SIZE):
+        cells = " ".join(
+            "#" if (row, col) in occupied else "." for col in range(BOARD_SIZE)
+        )
+        lines.append(f"{row + 1:2} {cells}")
+    return lines
+
+
+def ascii_preview(ships: list[Ship], *, player: int, t: Translator) -> str:
+    """Show a player's own fleet next to the empty enemy waters."""
+    own = ascii_board(ships, t=t, show_ships=True)
+    enemy = ascii_board([], t=t, show_ships=False)
+    own_title = f"{t('battleship_player', player=player)} · {t('battleship_own_short')}"
+    enemy_title = t("battleship_enemy_short")
+    board_width = max(len(line) for line in own)
+    gap = "   "
+    lines = [own_title.ljust(board_width) + gap + enemy_title]
+    lines.extend(left + gap + right for left, right in zip(own, enemy))
+    return "\n".join(lines)
+
+
 def _draw_grid(
     draw: ImageDraw.ImageDraw,
     *,
@@ -321,9 +356,11 @@ def render_battleship_pair(
     )
 
     label_key = "battleship_pair_label_auto" if auto_ships else "battleship_pair_label_empty"
+    preview = ascii_preview(ships, player=player, t=t) if auto_ships else None
     return Page(
         image=final,
         label=t(label_key, player=player),
+        ascii_preview=preview,
         pause_after=True,
         tear_off=True,
     )
@@ -357,6 +394,7 @@ __all__ = [
     "BOARD_SIZE",
     "FLEET",
     "Ship",
+    "ascii_preview",
     "build_battleship_pages",
     "compose_battleship_pair",
     "place_fleet",

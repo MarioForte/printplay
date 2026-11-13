@@ -152,6 +152,9 @@ interactive menu, battleship asks only for the number of players and whether to
 auto-place ships. The pause is an advanced CLI option (`--pause`); the default
 is two seconds between fragments.
 
+When ships are auto-placed, the print plan also shows each player's fleet as an
+ASCII diagram in the terminal, with the enemy waters left empty.
+
 Each player's two fields are printed as one fragment. The pair is rotated 90°
 on the roll: tear it off, turn the paper, and the own fleet sits on the left
 while the empty enemy waters sit on the right. The fleet legend is printed under

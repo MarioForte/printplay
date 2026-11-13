@@ -74,4 +74,6 @@ def test_battleship_can_print_empty_own_fields() -> None:
 
     assert top_half_black(auto_pages[0]) > top_half_black(empty_pages[0])
     assert auto_pages[0].label != empty_pages[0].label
+    assert auto_pages[0].ascii_preview
+    assert empty_pages[0].ascii_preview is None
 
