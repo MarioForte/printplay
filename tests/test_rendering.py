@@ -51,3 +51,27 @@ def test_battleship_pairs_are_rotated_fragments() -> None:
 
 def test_translation_keys_match() -> None:
     assert set(MESSAGES["en"]) == set(MESSAGES["ru"])
+
+def test_battleship_can_print_empty_own_fields() -> None:
+    auto_pages = build_battleship_pages(
+        width=384,
+        players=1,
+        t=Translator("en"),
+        auto_ships=True,
+        rng=random.Random(1),
+    )
+    empty_pages = build_battleship_pages(
+        width=384,
+        players=1,
+        t=Translator("en"),
+        auto_ships=False,
+        rng=random.Random(1),
+    )
+
+    def top_half_black(page) -> int:
+        top = page.image.crop((0, 0, page.image.width, page.image.height // 2))
+        return _black_pixels(top)
+
+    assert top_half_black(auto_pages[0]) > top_half_black(empty_pages[0])
+    assert auto_pages[0].label != empty_pages[0].label
+

@@ -163,7 +163,7 @@ def _draw_ship(
     # white with only the outline, which is also easy to write over.
     draw.rectangle(
         (x1, y1, x2, y2),
-        fill=210,
+        fill=220,
         outline=0,
         width=max(2, cell // 14),
     )
@@ -237,6 +237,7 @@ def render_battleship_pair(
     width: int,
     player: int,
     t: Translator,
+    auto_ships: bool = True,
 ) -> Page:
     """Render one player's pair: own fleet and enemy waters side by side.
 
@@ -272,7 +273,7 @@ def render_battleship_pair(
         player=player,
         role="own",
         t=t,
-        show_ships=True,
+        show_ships=auto_ships,
     )
     _draw_board_section(
         draw,
@@ -301,9 +302,10 @@ def render_battleship_pair(
         load_font(max(8, width // 48)),
     )
 
+    label_key = "battleship_pair_label_auto" if auto_ships else "battleship_pair_label_empty"
     return Page(
         image=final,
-        label=t("battleship_pair_label", player=player),
+        label=t(label_key, player=player),
         pause_after=True,
         tear_off=True,
     )
@@ -314,13 +316,23 @@ def build_battleship_pages(
     width: int,
     players: int,
     t: Translator,
+    auto_ships: bool = True,
     rng: Optional[random.Random] = None,
 ) -> list[Page]:
     rng = rng or random.Random()
-    return [
-        render_battleship_pair(place_fleet(rng), width=width, player=player, t=t)
-        for player in range(1, players + 1)
-    ]
+    pages: list[Page] = []
+    for player in range(1, players + 1):
+        ships = place_fleet(rng) if auto_ships else []
+        pages.append(
+            render_battleship_pair(
+                ships,
+                width=width,
+                player=player,
+                t=t,
+                auto_ships=auto_ships,
+            )
+        )
+    return pages
 
 
 __all__ = [

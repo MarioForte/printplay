@@ -80,6 +80,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=2,
         help="Number of player sets, each with own fleet and enemy waters (default: 2)",
     )
+    battleship.add_argument(
+        "--auto-ships",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Auto-place ships on each own field (default: yes)",
+    )
 
     subparsers.add_parser("scan", parents=[common], help="Scan for supported printers")
     subparsers.add_parser("models", parents=[common], help="List supported printer models")
@@ -119,6 +125,21 @@ def _ask_int(t: Translator, prompt: str, minimum: int, maximum: int, default: in
         print(t("menu_invalid"))
 
 
+def _ask_yes_no(t: Translator, prompt: str, default: bool) -> bool:
+    while True:
+        try:
+            raw = input(prompt).strip().lower()
+        except EOFError:
+            return default
+        if not raw:
+            return default
+        if raw in ("y", "yes", "д", "да"):
+            return True
+        if raw in ("n", "no", "н", "нет"):
+            return False
+        print(t("menu_invalid"))
+
+
 def _run_sudoku(level: int, count: int, options: PrintOptions, t: Translator) -> int:
     return asyncio.run(
         run_print(
@@ -134,12 +155,18 @@ def _run_sudoku(level: int, count: int, options: PrintOptions, t: Translator) ->
     )
 
 
-def _run_battleship(players: int, options: PrintOptions, t: Translator) -> int:
+def _run_battleship(
+    players: int,
+    auto_ships: bool,
+    options: PrintOptions,
+    t: Translator,
+) -> int:
     return asyncio.run(
         run_print(
             lambda width: build_battleship_pages(
                 width=width,
                 players=players,
+                auto_ships=auto_ships,
                 t=t,
             ),
             options,
@@ -173,7 +200,8 @@ def run_menu(t: Translator) -> int:
         elif choice == "2":
             print(t("battleship_menu_hint"))
             players = _ask_int(t, t("battleship_players_prompt"), 1, 2, 2)
-            _run_battleship(players, PrintOptions(pause=2.0), t)
+            auto_ships = _ask_yes_no(t, t("battleship_auto_ships_prompt"), True)
+            _run_battleship(players, auto_ships, PrintOptions(pause=2.0), t)
         elif choice == "3":
             asyncio.run(scan_printers(t))
         elif choice == "4":
@@ -197,7 +225,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 raise ValueError("--count must be at least 1")
             return _run_sudoku(args.difficulty, args.count, _options_from_args(args), t)
         if command == "battleship":
-            return _run_battleship(args.players, _options_from_args(args), t)
+            return _run_battleship(
+                args.players,
+                args.auto_ships,
+                _options_from_args(args),
+                t,
+            )
         if command == "scan":
             return asyncio.run(scan_printers(t))
         if command == "models":
